@@ -95,16 +95,26 @@ Paste this to your AI coding agent (Claude Code, OpenCode, Cursor, etc.):
 ```
 Install opencode-claude-auth-sync from https://github.com/lehdqlsl/opencode-claude-auth-sync
 
-Run the install script:
-# Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
+1. Run the install script:
+   # Linux / macOS
+   curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
 
-# Windows (PowerShell as Admin)
-irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
+   # Windows (PowerShell as Admin)
+   irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
 
-Then verify with:
-opencode providers list
-opencode models anthropic
+2. Check the sync output. If it says "EXPIRED", the Claude CLI token is stale.
+   Fix: run `claude` in the terminal to re-authenticate, then re-run the sync:
+   # Linux / macOS
+   ~/.local/bin/sync-claude-to-opencode.sh
+   # Windows
+   & "$HOME\.local\bin\sync-claude-to-opencode.ps1"
+
+3. Verify — the output should show remaining time, not EXPIRED:
+   opencode providers list    # Should show: Anthropic oauth
+   opencode models anthropic  # Should list Claude models
+
+4. If you see "Token refresh failed: 429", that means expired tokens were used.
+   Re-authenticate with `claude` first, then sync again.
 ```
 
 ### Linux / macOS (manual)
