@@ -4,6 +4,7 @@ set -euo pipefail
 INSTALL_DIR="${HOME}/.local/bin"
 SCRIPT_NAME="sync-claude-to-opencode.sh"
 REPO_RAW="https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main"
+CRON_MARKER="# opencode-claude-auth-sync"
 
 CLAUDE_CREDS="${HOME}/.claude/.credentials.json"
 OPENCODE_AUTH="${HOME}/.local/share/opencode/auth.json"
@@ -53,30 +54,34 @@ fi
 chmod +x "${INSTALL_DIR}/${SCRIPT_NAME}"
 
 echo "==> Running initial sync..."
-"${INSTALL_DIR}/${SCRIPT_NAME}" && echo "    Initial sync complete." || echo "    Initial sync skipped (already up to date)."
+if "${INSTALL_DIR}/${SCRIPT_NAME}"; then
+  echo "    Initial sync complete."
+else
+  rc=$?
+  echo "    WARNING: Initial sync failed (exit code $rc)." >&2
+  # Non-fatal: continue with install so cron can retry later
+fi
 
-echo "==> Removing opencode-claude-auth from opencode.json if present..."
+echo "==> Checking opencode-claude-auth in opencode.json..."
 OPENCODE_CONFIG="${HOME}/.config/opencode/opencode.json"
 if [[ -f "$OPENCODE_CONFIG" ]] && grep -q "opencode-claude-auth" "$OPENCODE_CONFIG"; then
-  node -e "
-    const fs = require('fs');
-    const config = JSON.parse(fs.readFileSync('${OPENCODE_CONFIG}', 'utf8'));
-    if (Array.isArray(config.plugin)) {
-      config.plugin = config.plugin.filter(p => !p.includes('opencode-claude-auth'));
-      fs.writeFileSync('${OPENCODE_CONFIG}', JSON.stringify(config, null, 2));
-      console.log('    Removed opencode-claude-auth from plugin list.');
-    }
-  "
+  echo "    WARNING: 'opencode-claude-auth' found in $OPENCODE_CONFIG"
+  echo "    This package is incompatible. Please remove it manually from the 'plugin' array."
 fi
 
 echo "==> Setting up cron (every hour)..."
-CRON_CMD="0 * * * * ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1"
+CRON_CMD="0 * * * * ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
 
-if crontab -l 2>/dev/null | grep -qF "$SCRIPT_NAME"; then
-  echo "    Cron already registered. Skipping."
+if command -v crontab >/dev/null 2>&1; then
+  if crontab -l 2>/dev/null | grep -qF "$CRON_MARKER"; then
+    echo "    Cron already registered. Skipping."
+  else
+    (crontab -l 2>/dev/null || true; echo "$CRON_CMD") | crontab -
+    echo "    Cron registered."
+  fi
 else
-  (crontab -l 2>/dev/null; echo "$CRON_CMD") | crontab -
-  echo "    Cron registered."
+  echo "    WARNING: crontab not found. Set up a periodic job manually:"
+  echo "      ${INSTALL_DIR}/${SCRIPT_NAME}"
 fi
 
 echo ""

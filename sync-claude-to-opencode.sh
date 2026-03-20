@@ -27,20 +27,38 @@ if [[ -z "$CLAUDE_JSON" ]]; then
   exit 0
 fi
 
-node --input-type=module -e "
-const creds = (() => {
-  const raw = JSON.parse(process.argv[1]);
-  return raw.claudeAiOauth ?? raw;
-})(process.argv[1]);
+# Pass credentials via stdin and paths via env vars to avoid
+# exposing secrets in process args and shell injection via paths.
+export OPENCODE_AUTH_FILE="$OPENCODE_AUTH"
+echo "$CLAUDE_JSON" | node --input-type=module -e "
+import fs from 'node:fs';
+
+let input = '';
+for await (const chunk of process.stdin) input += chunk;
+
+let creds;
+try {
+  const raw = JSON.parse(input);
+  creds = raw.claudeAiOauth ?? raw;
+} catch (e) {
+  console.error('Failed to parse Claude credentials: ' + e.message);
+  process.exit(1);
+}
 
 if (!creds.accessToken || !creds.refreshToken || !creds.expiresAt) {
   console.error('Claude credentials incomplete');
   process.exit(1);
 }
 
-import fs from 'node:fs';
+const authPath = process.env.OPENCODE_AUTH_FILE;
 
-const auth = JSON.parse(fs.readFileSync('${OPENCODE_AUTH}', 'utf8'));
+let auth;
+try {
+  auth = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+} catch (e) {
+  console.error('Failed to parse ' + authPath + ': ' + e.message);
+  process.exit(1);
+}
 
 const remaining = creds.expiresAt - Date.now();
 const hours = Math.floor(remaining / 3600000);
@@ -50,7 +68,8 @@ const status = remaining > 0 ? hours + 'h ' + mins + 'm remaining' : 'EXPIRED';
 if (
   auth.anthropic &&
   auth.anthropic.access === creds.accessToken &&
-  auth.anthropic.refresh === creds.refreshToken
+  auth.anthropic.refresh === creds.refreshToken &&
+  auth.anthropic.expires === creds.expiresAt
 ) {
   console.log(new Date().toISOString() + ' already in sync (' + status + ')');
   process.exit(0);
@@ -63,6 +82,14 @@ auth.anthropic = {
   expires: creds.expiresAt,
 };
 
-fs.writeFileSync('${OPENCODE_AUTH}', JSON.stringify(auth, null, 2));
+// Atomic write: temp file then rename
+const tmpPath = authPath + '.tmp.' + process.pid;
+try {
+  fs.writeFileSync(tmpPath, JSON.stringify(auth, null, 2), { mode: 0o600 });
+  fs.renameSync(tmpPath, authPath);
+} catch (e) {
+  try { fs.unlinkSync(tmpPath); } catch {}
+  throw e;
+}
 console.log(new Date().toISOString() + ' synced (' + status + ')');
-" "$CLAUDE_JSON"
+"
