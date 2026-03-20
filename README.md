@@ -242,6 +242,8 @@ Early versions (v0.2.x) had issues that have since been fixed. If you're on an o
 
 The sync script attempts an automatic refresh via Claude CLI once the token is expired. If Claude CLI can refresh successfully, the next sync writes fresh credentials back to OpenCode.
 
+> **Note:** If the token expired while OpenCode was running, you may need to restart OpenCode after the sync to pick up the new credentials. This is rare — normally Claude CLI refreshes tokens before they expire, so OpenCode reads them seamlessly.
+
 If auto-refresh fails (e.g. `claude` CLI not in PATH, or network issues):
 
 1. Re-authenticate manually:
