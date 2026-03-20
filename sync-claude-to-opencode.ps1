@@ -30,7 +30,7 @@ function Invoke-CliRefresh {
     }
     Write-Output "$(Get-Date -Format o) refreshing via claude CLI..."
     try {
-        $proc = Start-Process -FilePath "claude" -ArgumentList "-p . --model claude-haiku-4-5-20250514" -NoNewWindow -PassThru -RedirectStandardOutput "NUL" -RedirectStandardError "NUL"
+        $proc = Start-Process -FilePath "claude" -ArgumentList "-p . --model claude-haiku-4-5" -NoNewWindow -PassThru -RedirectStandardOutput "NUL" -RedirectStandardError "NUL"
         $proc | Wait-Process -Timeout 60 -ErrorAction SilentlyContinue
         if (-not $proc.HasExited) { $proc | Stop-Process -Force }
     } catch {}

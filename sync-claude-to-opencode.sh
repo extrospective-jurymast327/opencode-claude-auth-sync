@@ -58,7 +58,7 @@ refresh_via_cli() {
     return 1
   fi
   echo "$(date -u +%Y-%m-%dT%H:%M:%S.000Z) refreshing via claude CLI..." >&2
-  timeout 60 claude -p . --model claude-haiku-4-5-20250514 </dev/null >/dev/null 2>&1 || true
+  timeout 60 claude -p . --model claude-haiku-4-5 </dev/null >/dev/null 2>&1 || true
 }
 
 # --- Main ---
