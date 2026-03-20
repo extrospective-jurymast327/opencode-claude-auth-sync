@@ -4,6 +4,10 @@ $claudeCredsPath = if ($env:CLAUDE_CREDENTIALS_PATH) { $env:CLAUDE_CREDENTIALS_P
 $opencodeAuthPath = if ($env:OPENCODE_AUTH_PATH) { $env:OPENCODE_AUTH_PATH } else { Join-Path $HOME ".local\share\opencode\auth.json" }
 $refreshThreshold = 900000 # 15 minutes
 
+$mode = "sync"
+if ($args -contains "--status") { $mode = "status" }
+elseif ($args -contains "--force") { $mode = "force" }
+
 if (-not (Test-Path $opencodeAuthPath)) { exit 0 }
 
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
@@ -20,13 +24,28 @@ function Read-ClaudeCreds {
 }
 
 function Invoke-CliRefresh {
-    if (-not (Get-Command claude -ErrorAction SilentlyContinue)) { return }
-    Write-Output "$(Get-Date -Format o) token expiring soon, refreshing via claude CLI..."
+    if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
+        Write-Output "claude CLI not found, cannot auto-refresh"
+        return
+    }
+    Write-Output "$(Get-Date -Format o) refreshing via claude CLI..."
     try {
         $proc = Start-Process -FilePath "claude" -ArgumentList "-p . --model claude-haiku-4-5-20250514" -NoNewWindow -PassThru -RedirectStandardOutput "NUL" -RedirectStandardError "NUL"
         $proc | Wait-Process -Timeout 60 -ErrorAction SilentlyContinue
         if (-not $proc.HasExited) { $proc | Stop-Process -Force }
     } catch {}
+}
+
+function Get-TokenStatus($creds) {
+    $nowMs = [long]([datetime]::UtcNow - [datetime]::new(1970, 1, 1)).TotalMilliseconds
+    $remaining = $creds.expiresAt - $nowMs
+    $hours = [math]::Floor($remaining / 3600000)
+    $mins = [math]::Floor(($remaining % 3600000) / 60000)
+    return @{
+        remaining = $remaining
+        display   = if ($remaining -gt 0) { "${hours}h ${mins}m remaining" } else { "EXPIRED" }
+        expires   = [datetime]::new(1970, 1, 1).AddMilliseconds($creds.expiresAt).ToString("o")
+    }
 }
 
 $creds = Read-ClaudeCreds
@@ -41,22 +60,39 @@ if (-not $creds.accessToken -or -not $creds.refreshToken -or -not $creds.expires
     exit 1
 }
 
-$nowMs = [long]([datetime]::UtcNow - [datetime]::new(1970, 1, 1)).TotalMilliseconds
-$remaining = $creds.expiresAt - $nowMs
+if ($mode -eq "status") {
+    $s = Get-TokenStatus $creds
+    if ($s.remaining -le 0) {
+        Write-Output "Status:  EXPIRED"
+        Write-Output "Expired: $($s.expires)"
+    } else {
+        Write-Output "Status:  valid ($($s.display))"
+        Write-Output "Expires: $($s.expires)"
+    }
+    Write-Output "Source:  file"
+    exit 0
+}
 
-if ($remaining -le $refreshThreshold) {
+if ($mode -eq "force") {
     Invoke-CliRefresh
     $creds = Read-ClaudeCreds
     if (-not $creds -or -not $creds.accessToken) {
         Write-Error "No Claude credentials found after refresh"
         exit 1
     }
-    $remaining = $creds.expiresAt - [long]([datetime]::UtcNow - [datetime]::new(1970, 1, 1)).TotalMilliseconds
+} else {
+    $s = Get-TokenStatus $creds
+    if ($s.remaining -le $refreshThreshold) {
+        Invoke-CliRefresh
+        $creds = Read-ClaudeCreds
+        if (-not $creds -or -not $creds.accessToken) {
+            Write-Error "No Claude credentials found after refresh"
+            exit 1
+        }
+    }
 }
 
-$hours = [math]::Floor($remaining / 3600000)
-$mins = [math]::Floor(($remaining % 3600000) / 60000)
-$status = if ($remaining -gt 0) { "${hours}h ${mins}m remaining" } else { "EXPIRED" }
+$s = Get-TokenStatus $creds
 
 try {
     $auth = Get-Content $opencodeAuthPath -Raw | ConvertFrom-Json
@@ -69,7 +105,7 @@ if ($auth.anthropic -and
     $auth.anthropic.access -eq $creds.accessToken -and
     $auth.anthropic.refresh -eq $creds.refreshToken -and
     $auth.anthropic.expires -eq $creds.expiresAt) {
-    Write-Output "$(Get-Date -Format o) already in sync ($status)"
+    Write-Output "$(Get-Date -Format o) already in sync ($($s.display))"
     exit 0
 }
 
@@ -93,4 +129,4 @@ try {
     if (Test-Path $tmpPath) { Remove-Item $tmpPath -ErrorAction SilentlyContinue }
     throw
 }
-Write-Output "$(Get-Date -Format o) synced ($status)"
+Write-Output "$(Get-Date -Format o) synced ($($s.display))"

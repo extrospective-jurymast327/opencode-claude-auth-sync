@@ -41,6 +41,19 @@ opencode providers list    # Should show: Anthropic  oauth
 opencode models anthropic  # Should list Claude models (e.g. claude-opus-4-6)
 ```
 
+### Usage
+
+```bash
+# Normal sync (default, also runs via scheduler)
+~/.local/bin/sync-claude-to-opencode.sh
+
+# Check token status without syncing
+~/.local/bin/sync-claude-to-opencode.sh --status
+
+# Force refresh token via Claude CLI regardless of expiry
+~/.local/bin/sync-claude-to-opencode.sh --force
+```
+
 ## Platform Support
 
 | Platform | Claude credentials | Scheduler | Install command |

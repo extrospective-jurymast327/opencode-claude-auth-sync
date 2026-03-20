@@ -4,6 +4,12 @@ set -euo pipefail
 OPENCODE_AUTH="${OPENCODE_AUTH_PATH:-$HOME/.local/share/opencode/auth.json}"
 REFRESH_THRESHOLD=900000  # 15 minutes
 
+MODE="sync"
+case "${1:-}" in
+  --status) MODE="status" ;;
+  --force)  MODE="force" ;;
+esac
+
 [[ ! -f "$OPENCODE_AUTH" ]] && exit 0
 command -v node >/dev/null 2>&1 || { echo "node not found" >&2; exit 1; }
 
@@ -48,9 +54,10 @@ read_claude_creds() {
 
 refresh_via_cli() {
   if ! command -v claude >/dev/null 2>&1; then
+    echo "claude CLI not found, cannot auto-refresh" >&2
     return 1
   fi
-  echo "$(date -u +%Y-%m-%dT%H:%M:%S.000Z) token expiring soon, refreshing via claude CLI..." >&2
+  echo "$(date -u +%Y-%m-%dT%H:%M:%S.000Z) refreshing via claude CLI..." >&2
   timeout 60 claude -p . --model claude-haiku-4-5-20250514 </dev/null >/dev/null 2>&1 || true
 }
 
@@ -63,10 +70,45 @@ if [[ -z "$CLAUDE_JSON" ]]; then
   exit 0
 fi
 
-export OPENCODE_AUTH_FILE="$OPENCODE_AUTH"
-export REFRESH_THRESHOLD
+# --status: show token state and exit
+if [[ "$MODE" == "status" ]]; then
+  echo "$CLAUDE_JSON" | node --input-type=module -e "
+let input = '';
+for await (const chunk of process.stdin) input += chunk;
+try {
+  const raw = JSON.parse(input);
+  const creds = raw.claudeAiOauth ?? raw;
+  const remaining = (creds.expiresAt || 0) - Date.now();
+  const hours = Math.floor(remaining / 3600000);
+  const mins = Math.floor((remaining % 3600000) / 60000);
+  const expires = new Date(creds.expiresAt).toISOString();
+  if (remaining <= 0) {
+    console.log('Status:  EXPIRED');
+    console.log('Expired: ' + expires);
+  } else {
+    console.log('Status:  valid (' + hours + 'h ' + mins + 'm remaining)');
+    console.log('Expires: ' + expires);
+  }
+  console.log('Source:  ' + (process.env.CRED_SOURCE || 'file'));
+} catch (e) {
+  console.error('Failed to parse credentials: ' + e.message);
+  process.exit(1);
+}
+"
+  exit 0
+fi
 
-NEED_REFRESH=$(echo "$CLAUDE_JSON" | node --input-type=module -e "
+# --force: refresh regardless of expiry
+if [[ "$MODE" == "force" ]]; then
+  refresh_via_cli
+  CLAUDE_JSON=$(read_claude_creds)
+  if [[ -z "$CLAUDE_JSON" ]]; then
+    echo "No Claude credentials found after refresh" >&2
+    exit 1
+  fi
+else
+  export REFRESH_THRESHOLD
+  NEED_REFRESH=$(echo "$CLAUDE_JSON" | node --input-type=module -e "
 let input = '';
 for await (const chunk of process.stdin) input += chunk;
 try {
@@ -77,15 +119,17 @@ try {
 } catch { console.log('no'); }
 " 2>/dev/null || echo "no")
 
-if [[ "$NEED_REFRESH" == "yes" ]]; then
-  refresh_via_cli
-  CLAUDE_JSON=$(read_claude_creds)
-  if [[ -z "$CLAUDE_JSON" ]]; then
-    echo "No Claude credentials found after refresh" >&2
-    exit 1
+  if [[ "$NEED_REFRESH" == "yes" ]]; then
+    refresh_via_cli
+    CLAUDE_JSON=$(read_claude_creds)
+    if [[ -z "$CLAUDE_JSON" ]]; then
+      echo "No Claude credentials found after refresh" >&2
+      exit 1
+    fi
   fi
 fi
 
+export OPENCODE_AUTH_FILE="$OPENCODE_AUTH"
 echo "$CLAUDE_JSON" | node --input-type=module -e "
 import fs from 'node:fs';
 
