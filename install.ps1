@@ -40,22 +40,11 @@ if ($LASTEXITCODE -eq 0) {
     Write-Warning "    Initial sync failed (exit code $LASTEXITCODE)."
 }
 
-Write-Output "==> Removing opencode-claude-auth from opencode.json if present..."
+Write-Output "==> Checking opencode-claude-auth in opencode.json..."
 $opencodeConfig = Join-Path $HOME ".config\opencode\opencode.json"
-if (Test-Path $opencodeConfig) {
-    try {
-        $config = Get-Content $opencodeConfig -Raw | ConvertFrom-Json
-        if ($config.plugin -and ($config.plugin -match "opencode-claude-auth")) {
-            $config.plugin = @($config.plugin | Where-Object { $_ -notmatch "opencode-claude-auth" })
-            $tmpConfig = "$opencodeConfig.tmp.$PID"
-            $json = $config | ConvertTo-Json -Depth 10
-            [System.IO.File]::WriteAllText($tmpConfig, $json, $utf8NoBom)
-            Move-Item -Path $tmpConfig -Destination $opencodeConfig -Force
-            Write-Output "    Removed opencode-claude-auth from plugin list."
-        }
-    } catch {
-        Write-Output "    Skipping: could not parse opencode.json (may contain JSONC comments)."
-    }
+if ((Test-Path $opencodeConfig) -and (Select-String -Path $opencodeConfig -Pattern "opencode-claude-auth" -Quiet)) {
+    Write-Output "    WARNING: 'opencode-claude-auth' found in $opencodeConfig"
+    Write-Output "    This package is incompatible. Please remove it manually from the 'plugin' array."
 }
 
 Write-Output "==> Setting up Task Scheduler (every hour)..."
