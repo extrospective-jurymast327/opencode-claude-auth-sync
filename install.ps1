@@ -58,14 +58,13 @@ if ($noScheduler) {
     $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 
     if ($existingTask) {
-        Write-Output "    Task already registered. Skipping."
-    } else {
-        $action = New-ScheduledTaskAction -Execute $psExe -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$installDir\$scriptName`""
-        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 15)
-        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
-        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Sync Claude CLI credentials to OpenCode" | Out-Null
-        Write-Output "    Task Scheduler registered."
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
     }
+    $action = New-ScheduledTaskAction -Execute $psExe -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$installDir\$scriptName`""
+    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 15)
+    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+    Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Description "Sync Claude CLI credentials to OpenCode" | Out-Null
+    Write-Output "    Task Scheduler registered."
 }
 
 Write-Output ""

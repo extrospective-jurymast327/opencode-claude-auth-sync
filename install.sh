@@ -120,12 +120,15 @@ else
   CRON_CMD="*/15 * * * * ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
 
   if command -v crontab >/dev/null 2>&1; then
-    if crontab -l 2>/dev/null | grep -qF "$CRON_MARKER"; then
-      echo "    Cron already registered. Skipping."
+    EXISTING=$(crontab -l 2>/dev/null || true)
+    FILTERED=$(echo "$EXISTING" | grep -vF "$CRON_MARKER" || true)
+    if [[ -z "$FILTERED" ]]; then
+      echo "$CRON_CMD" | crontab -
     else
-      (crontab -l 2>/dev/null || true; echo "$CRON_CMD") | crontab -
-      echo "    Cron registered."
+      echo "$FILTERED
+$CRON_CMD" | crontab -
     fi
+    echo "    Cron registered."
   else
     echo "    WARNING: crontab not found. Set up a periodic job manually:"
     echo "      ${INSTALL_DIR}/${SCRIPT_NAME}"
