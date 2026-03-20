@@ -242,6 +242,34 @@ Check the sync history:
 cat ~/.local/share/opencode/sync-claude.log
 ```
 
+### OpenCode v1.3+ compatibility
+
+OpenCode v1.3 removes the built-in `opencode-anthropic-auth` plugin ([PR #18186](https://github.com/anomalyco/opencode/pull/18186)) per Anthropic's legal request. This tool depends on that plugin to handle token refresh and request signing.
+
+**While the npm package is still available**, you can manually register it in your `opencode.json`:
+
+```json
+{
+  "plugin": ["opencode-anthropic-auth@0.0.13"]
+}
+```
+
+**If the npm package gets unpublished**, back up the package locally before it disappears:
+
+```bash
+npm pack opencode-anthropic-auth@0.0.13
+```
+
+This downloads `opencode-anthropic-auth-0.0.13.tgz` to your current directory. Extract it and reference the local file in your `opencode.json`:
+
+```json
+{
+  "plugin": ["/path/to/index.mjs"]
+}
+```
+
+This tool (`opencode-claude-auth-sync`) itself only copies credentials and has no legal concerns. The compatibility risk is with the auth plugin that actually uses them.
+
 ## License
 
 MIT
