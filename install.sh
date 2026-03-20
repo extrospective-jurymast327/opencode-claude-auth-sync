@@ -13,9 +13,23 @@ echo "==> Checking prerequisites..."
 command -v node >/dev/null 2>&1 || { echo "ERROR: node is required but not found"; exit 1; }
 command -v opencode >/dev/null 2>&1 || { echo "ERROR: opencode is required but not found"; exit 1; }
 
-if [[ ! -f "$CLAUDE_CREDS" ]]; then
-  echo "ERROR: Claude credentials not found at $CLAUDE_CREDS"
-  echo "Run 'claude' first to authenticate."
+CLAUDE_FOUND=false
+
+if [[ -f "$CLAUDE_CREDS" ]]; then
+  CLAUDE_FOUND=true
+elif [[ "$(uname)" == "Darwin" ]] && command -v security >/dev/null 2>&1; then
+  if security find-generic-password -s "Claude Code-credentials" -w >/dev/null 2>&1; then
+    CLAUDE_FOUND=true
+  fi
+fi
+
+if [[ "$CLAUDE_FOUND" == "false" ]]; then
+  echo "ERROR: Claude credentials not found."
+  echo ""
+  echo "  macOS:         Not in Keychain (service: 'Claude Code-credentials')"
+  echo "  Linux/Windows: Not at $CLAUDE_CREDS"
+  echo ""
+  echo "Run 'claude' first to authenticate, then re-run this installer."
   exit 1
 fi
 
