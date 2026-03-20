@@ -230,6 +230,23 @@ Claude CLI tokens are valid for approximately **5–6 hours**. If you see `EXPIR
 
 The scheduled sync job (LaunchAgent / cron / Task Scheduler) will also pick up new credentials automatically within an hour.
 
+### Logged out of OpenCode / Claude models disappeared
+
+If you ran `opencode auth logout` or the Anthropic entry was removed from `auth.json`, you don't need to log back in through OpenCode's broken OAuth flow. Just re-sync:
+
+```bash
+# Make sure Claude CLI is authenticated
+claude
+
+# Re-sync (if already installed)
+~/.local/bin/sync-claude-to-opencode.sh          # Linux / macOS
+& "$HOME\.local\bin\sync-claude-to-opencode.ps1"  # Windows
+
+# Restart OpenCode — Claude models should reappear
+```
+
+If you haven't installed yet, the one-liner install handles the initial sync automatically.
+
 ### Token refresh failed: 429
 
 This means OpenCode tried to use an expired token. It's not a rate limit — it's Anthropic rejecting a stale refresh token. Fix by re-authenticating with `claude` and syncing again (see above).
