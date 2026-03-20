@@ -170,18 +170,38 @@ The `opencode-claude-auth` npm package is **incompatible** with this tool and wi
 - Exports `auth.methods: []` (empty array), which crashes OpenCode's login UI with `TypeError: undefined is not an object (evaluating 'method.type')`
 - Calls `clearOpencodeAuth()` on startup, which **deletes** the Anthropic entry from `auth.json` — making the provider disappear entirely
 
-The installer automatically removes it from your OpenCode plugin config if detected.
+The installer warns if detected. Remove it manually from the `plugin` array in your `opencode.json`.
 
-### Token expiration
+### Token expiration / "EXPIRED" status
 
-When your Claude CLI token expires, re-authenticate by running `claude` in your terminal. The sync job will pick up the new credentials within an hour. For immediate sync, run:
+Claude CLI tokens are valid for approximately **5–6 hours**. If you see `EXPIRED` in the sync output or `Token refresh failed: 429` when using Claude models:
+
+1. Re-authenticate with Claude CLI:
+   ```bash
+   claude
+   ```
+2. Re-run the sync immediately:
+   ```bash
+   # Linux / macOS
+   ~/.local/bin/sync-claude-to-opencode.sh
+
+   # Windows
+   & "$HOME\.local\bin\sync-claude-to-opencode.ps1"
+   ```
+3. Verify the output shows remaining time (e.g. `5h 30m remaining`), not `EXPIRED`
+
+The scheduled sync job (LaunchAgent / cron / Task Scheduler) will also pick up new credentials automatically within an hour.
+
+### Token refresh failed: 429
+
+This means OpenCode tried to use an expired token. It's not a rate limit — it's Anthropic rejecting a stale refresh token. Fix by re-authenticating with `claude` and syncing again (see above).
+
+### Sync log
+
+Check the sync history:
 
 ```bash
-# Linux / macOS
-~/.local/bin/sync-claude-to-opencode.sh
-
-# Windows
-& "$HOME\.local\bin\sync-claude-to-opencode.ps1"
+cat ~/.local/share/opencode/sync-claude.log
 ```
 
 ## License
