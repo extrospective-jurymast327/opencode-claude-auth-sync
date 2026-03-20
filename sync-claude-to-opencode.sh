@@ -11,6 +11,14 @@ esac
 [[ ! -f "$OPENCODE_AUTH" ]] && exit 0
 command -v node >/dev/null 2>&1 || { echo "node not found" >&2; exit 1; }
 
+# --- Warn about deprecated cached plugin ---
+DEPRECATED_PLUGIN="$HOME/.cache/opencode/node_modules/opencode-anthropic-auth"
+if [[ -d "$DEPRECATED_PLUGIN" ]]; then
+  echo "⚠️  Deprecated opencode-anthropic-auth plugin detected in cache." >&2
+  echo "   This may cause 429 errors. Remove it with:" >&2
+  echo "   rm -rf $DEPRECATED_PLUGIN" >&2
+fi
+
 # --- Read Claude credentials (platform-aware) ---
 
 read_claude_creds() {
