@@ -117,7 +117,7 @@ PLIST
 
 else
   echo "==> Setting up cron (every 15 minutes)..."
-  CRON_CMD="*/15 * * * * ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
+  CRON_CMD="*/15 * * * * PATH=\"${PATH}\" ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
 
   if command -v crontab >/dev/null 2>&1; then
     EXISTING=$(crontab -l 2>/dev/null || true)
