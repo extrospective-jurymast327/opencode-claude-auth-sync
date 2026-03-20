@@ -4,17 +4,52 @@ Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) 
 
 > **Note:** OpenCode has officially dropped native Anthropic authentication support. This tool is the recommended way to use Claude models with OpenCode if you have a Claude CLI subscription.
 
+## Quick Start
+
+### Linux / macOS / WSL
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
+```
+
+### Windows (PowerShell as Administrator)
+
+```powershell
+irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
+```
+
+### Verify
+
+```bash
+opencode providers list    # Should show: Anthropic  oauth
+opencode models anthropic  # Should list Claude models (e.g. claude-opus-4-6)
+```
+
+## Platform Support
+
+| Platform | Claude credentials | Scheduler | Install command |
+|---|---|---|---|
+| **Linux / WSL** | `~/.claude/.credentials.json` | cron | `curl \| bash` |
+| **macOS** | macOS Keychain → file fallback | cron | `curl \| bash` |
+| **Windows** (native) | `%USERPROFILE%\.claude\.credentials.json` | Task Scheduler | PowerShell |
+
+## Prerequisites
+
+- [OpenCode](https://opencode.ai) v1.2.27+
+- [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) — authenticated (run `claude` at least once)
+- Node.js (bundled with OpenCode, or standalone)
+
 ## Why?
 
 OpenCode no longer provides built-in Anthropic login. If you want to use Claude models (Opus, Sonnet, Haiku, etc.) in OpenCode, you need to bring your own credentials.
 
-This tool bridges the gap: it reads your existing Claude CLI OAuth tokens (`~/.claude/.credentials.json`) and writes them into OpenCode's auth store (`~/.local/share/opencode/auth.json`), letting OpenCode's bundled `opencode-anthropic-auth` plugin handle the rest.
+This tool bridges the gap: it reads your existing Claude CLI OAuth tokens and writes them into OpenCode's auth store, letting OpenCode's bundled `opencode-anthropic-auth` plugin handle the rest.
 
 ## How It Works
 
 ```
 ┌─────────────────────────┐      sync script      ┌─────────────────────────────┐
-│  ~/.claude/              │      (cron 30m)       │  ~/.local/share/opencode/   │
+│  ~/.claude/              │     (cron / task)      │  ~/.local/share/opencode/   │
 │  .credentials.json       │ ──────────────────▶   │  auth.json                  │
 │                          │                       │                             │
 │  claudeAiOauth {         │   reads & compares    │  anthropic {                │
@@ -38,34 +73,20 @@ This tool bridges the gap: it reads your existing Claude CLI OAuth tokens (`~/.c
 | Platform | Claude CLI stores credentials in | How this script reads them |
 |---|---|---|
 | **macOS** | macOS Keychain (service: `Claude Code-credentials`) | `security find-generic-password` |
-| **Linux** | `~/.claude/.credentials.json` (plaintext file) | Direct file read |
+| **Linux / WSL / Windows** | `~/.claude/.credentials.json` | Direct file read |
 
 **Step by step:**
 
-1. Claude CLI stores OAuth credentials after you run `claude` and authenticate (Keychain on macOS, file on Linux)
+1. Claude CLI stores OAuth credentials after you run `claude` and authenticate (Keychain on macOS, file on Linux/Windows)
 2. This sync script detects the platform and reads the `claudeAiOauth` object from the appropriate source
 3. It compares the `accessToken` and `refreshToken` with what's currently in OpenCode's `auth.json`
 4. If they differ (or the Anthropic entry doesn't exist), it writes the new credentials
 5. If they're identical, it logs the remaining token lifetime and exits (no unnecessary writes)
-6. Once the credentials are in `auth.json`, OpenCode's built-in `opencode-anthropic-auth@0.0.13` plugin handles everything else: token refresh, request signing, OAuth beta headers, and user-agent
+6. Once the credentials are in `auth.json`, OpenCode's built-in `opencode-anthropic-auth` plugin handles everything else: token refresh, request signing, OAuth beta headers, and user-agent
 
 Claude CLI tokens are valid for approximately **5–6 hours**. The sync job runs every hour (cron on Linux/macOS, Task Scheduler on Windows), so if you re-authenticate with Claude CLI, OpenCode picks up the new tokens automatically.
 
-## Platform Support
-
-| Platform | Claude credentials | Scheduler | Install command |
-|---|---|---|---|
-| **Linux / WSL** | `~/.claude/.credentials.json` | cron | `curl \| bash` |
-| **macOS** | macOS Keychain → file fallback | cron | `curl \| bash` |
-| **Windows** (native) | `%USERPROFILE%\.claude\.credentials.json` | Task Scheduler | PowerShell |
-
-## Prerequisites
-
-- [OpenCode](https://opencode.ai) v1.2.27+
-- [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) — authenticated (run `claude` at least once)
-- Node.js (bundled with OpenCode, or standalone)
-
-## Install
+## Install (detailed)
 
 ### Automatic (with AI agent)
 
@@ -86,21 +107,7 @@ opencode providers list
 opencode models anthropic
 ```
 
-### Linux / macOS
-
-**One-liner:**
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
-```
-
-The installer will:
-1. Install the sync script to `~/.local/bin/sync-claude-to-opencode.sh`
-2. Run an initial credential sync
-3. Remove `opencode-claude-auth` from your OpenCode config if present (see [Known Issues](#known-issues))
-4. Set up a cron job to sync every hour
-
-**Manual:**
+### Linux / macOS (manual)
 
 ```bash
 mkdir -p ~/.local/bin
@@ -113,21 +120,7 @@ chmod +x ~/.local/bin/sync-claude-to-opencode.sh
 (crontab -l 2>/dev/null; echo "0 * * * * \$HOME/.local/bin/sync-claude-to-opencode.sh >> \$HOME/.local/share/opencode/sync-claude.log 2>&1") | crontab -
 ```
 
-### Windows
-
-**One-liner (PowerShell as Administrator):**
-
-```powershell
-irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
-```
-
-The installer will:
-1. Install the sync script to `~\.local\bin\sync-claude-to-opencode.ps1`
-2. Run an initial credential sync
-3. Remove `opencode-claude-auth` from your OpenCode config if present
-4. Set up a Task Scheduler job to sync every hour
-
-**Manual:**
+### Windows (manual)
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "$HOME\.local\bin" | Out-Null
@@ -137,27 +130,12 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/lehdqlsl/opencode-clau
 & "$HOME\.local\bin\sync-claude-to-opencode.ps1"
 ```
 
-## Verify
-
-```bash
-opencode providers list    # Should show: Anthropic  oauth
-opencode models anthropic  # Should list Claude models (e.g. claude-opus-4-6)
-```
-
 ## Configuration
 
 | Environment Variable | Default | Description |
 |---|---|---|
 | `CLAUDE_CREDENTIALS_PATH` | `~/.claude/.credentials.json` (Linux/Win) or Keychain (macOS) | Path to Claude CLI credentials |
 | `OPENCODE_AUTH_PATH` | `~/.local/share/opencode/auth.json` | Path to OpenCode auth store |
-
-Example with custom paths:
-
-```bash
-CLAUDE_CREDENTIALS_PATH=/custom/path/.credentials.json \
-OPENCODE_AUTH_PATH=/custom/path/auth.json \
-~/.local/bin/sync-claude-to-opencode.sh
-```
 
 ## Uninstall
 
@@ -186,10 +164,14 @@ The installer automatically removes it from your OpenCode plugin config if detec
 
 ### Token expiration
 
-When your Claude CLI token expires, re-authenticate by running `claude` in your terminal. The cron job will pick up the new credentials within an hour. For immediate sync, run:
+When your Claude CLI token expires, re-authenticate by running `claude` in your terminal. The sync job will pick up the new credentials within an hour. For immediate sync, run:
 
 ```bash
+# Linux / macOS
 ~/.local/bin/sync-claude-to-opencode.sh
+
+# Windows
+& "$HOME\.local\bin\sync-claude-to-opencode.ps1"
 ```
 
 ## License
