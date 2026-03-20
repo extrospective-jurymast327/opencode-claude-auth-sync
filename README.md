@@ -1,5 +1,7 @@
 # opencode-claude-auth-sync
 
+> **⚠️ This project is no longer actively maintained.** Anthropic now enforces User-Agent validation on API requests, which this tool cannot fix (it only syncs tokens). For a more complete solution that handles both token sync and User-Agent, use **[griffinmartin/opencode-claude-auth](https://github.com/griffinmartin/opencode-claude-auth)**.
+
 Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) credentials to [OpenCode](https://opencode.ai) — no separate Anthropic login needed.
 
 > **Note:** OpenCode has officially dropped native Anthropic authentication support. This tool is the recommended way to use Claude models with OpenCode if you have a Claude CLI subscription.
