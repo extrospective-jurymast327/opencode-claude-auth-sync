@@ -2,6 +2,8 @@
 
 Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) credentials to [OpenCode](https://opencode.ai) — no separate Anthropic login needed.
 
+> **Note:** This is a workaround. If OpenCode adds native support for reading Claude CLI credentials, this tool will no longer be needed.
+
 ## Why?
 
 OpenCode maintains its own auth store (`~/.local/share/opencode/auth.json`) for provider credentials. Even if you're already authenticated with Claude CLI, OpenCode doesn't know about it. Without an Anthropic entry in its auth store, OpenCode won't even show Claude models as available.
