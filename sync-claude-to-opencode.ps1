@@ -8,6 +8,16 @@ elseif ($args -contains "--force") { $mode = "force" }
 
 if (-not (Test-Path $opencodeAuthPath)) { exit 0 }
 
+$deprecatedPlugin = Join-Path $env:LOCALAPPDATA "opencode\node_modules\opencode-anthropic-auth"
+if (-not (Test-Path $deprecatedPlugin)) {
+    $deprecatedPlugin = Join-Path $HOME ".cache\opencode\node_modules\opencode-anthropic-auth"
+}
+if (Test-Path $deprecatedPlugin) {
+    Write-Warning "Deprecated opencode-anthropic-auth plugin detected in cache."
+    Write-Warning "This may cause 429 errors. Remove it with:"
+    Write-Warning "  Remove-Item -Recurse -Force '$deprecatedPlugin'"
+}
+
 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 function Read-ClaudeCreds {
