@@ -70,7 +70,7 @@ if [[ -f "$OPENCODE_CONFIG" ]] && grep -q "opencode-claude-auth" "$OPENCODE_CONF
 fi
 
 NO_SCHEDULER="${NO_SCHEDULER:-false}"
-if [[ "$1" == "--no-scheduler" ]]; then
+if [[ "${1:-}" == "--no-scheduler" ]]; then
   NO_SCHEDULER=true
 fi
 
