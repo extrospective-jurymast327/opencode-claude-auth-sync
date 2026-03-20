@@ -232,14 +232,11 @@ irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/un
 
 ## Known Issues
 
-### Do NOT use `opencode-claude-auth` npm package
+### Using alongside `opencode-claude-auth` npm plugin
 
-The `opencode-claude-auth` npm package is **incompatible** with this tool and with OpenCode v1.2.27+. That package:
+If you're using [`opencode-claude-auth`](https://github.com/griffinmartin/opencode-claude-auth) (v0.5+), you don't need this tool — that plugin syncs credentials in-process. Choose one or the other, not both.
 
-- Exports `auth.methods: []` (empty array), which crashes OpenCode's login UI with `TypeError: undefined is not an object (evaluating 'method.type')`
-- Calls `clearOpencodeAuth()` on startup, which **deletes** the Anthropic entry from `auth.json` — making the provider disappear entirely
-
-The installer warns if detected. Remove it manually from the `plugin` array in your `opencode.json`.
+Early versions (v0.2.x) had issues that have since been fixed. If you're on an old version, update or remove it.
 
 ### Token expiration / "EXPIRED" status
 
