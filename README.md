@@ -49,6 +49,21 @@ opencode models anthropic  # Should list Claude models (e.g. claude-opus-4-6)
 | **macOS** | macOS Keychain → file fallback | LaunchAgent | `curl \| bash` |
 | **Windows** (native) | `%USERPROFILE%\.claude\.credentials.json` | Task Scheduler | PowerShell |
 
+## Security
+
+This tool is **not an npm package** — it's a plain shell script you can read before running.
+
+- No `node_modules`, no dependency tree, no supply chain risk
+- Single-file scripts: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (bash) / [`.ps1`](sync-claude-to-opencode.ps1) (PowerShell)
+- Credentials are passed via stdin, never exposed in process arguments
+- All JSON writes are atomic (temp file + rename) to prevent corruption
+- Review the source before installing: it's ~100 lines per script
+
+```bash
+# Inspect before running
+curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/sync-claude-to-opencode.sh | less
+```
+
 ## Prerequisites
 
 - [OpenCode](https://opencode.ai) v1.2.27+
