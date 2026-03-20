@@ -4,6 +4,8 @@ Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) 
 
 > **Note:** OpenCode has officially dropped native Anthropic authentication support. This tool is the recommended way to use Claude models with OpenCode if you have a Claude CLI subscription.
 
+> **Why not an npm plugin?** When auth breaks, npm packages pop up fast — but installing unknown packages that handle your OAuth tokens is a risk. This tool is a plain shell script (~100 lines) you can read in full before running. No `node_modules`, no dependency tree, no trust required.
+
 ## Quick Start
 
 ### Linux / macOS / WSL
