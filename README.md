@@ -115,6 +115,13 @@ Install opencode-claude-auth-sync from https://github.com/lehdqlsl/opencode-clau
 
 4. If you see "Token refresh failed: 429", that means expired tokens were used.
    Re-authenticate with `claude` first, then sync again.
+
+5. If already installed and just need to refresh tokens (no reinstall needed):
+   Run `claude` to re-authenticate, then sync:
+   # Linux / macOS
+   ~/.local/bin/sync-claude-to-opencode.sh
+   # Windows
+   & "$HOME\.local\bin\sync-claude-to-opencode.ps1"
 ```
 
 ### Linux / macOS (manual)
