@@ -13,7 +13,6 @@ OPENCODE_AUTH="${HOME}/.local/share/opencode/auth.json"
 echo "==> Checking prerequisites..."
 
 command -v node >/dev/null 2>&1 || { echo "ERROR: node is required but not found"; exit 1; }
-command -v opencode >/dev/null 2>&1 || { echo "ERROR: opencode is required but not found"; exit 1; }
 
 CLAUDE_FOUND=false
 
@@ -37,7 +36,7 @@ fi
 
 if [[ ! -f "$OPENCODE_AUTH" ]]; then
   echo "ERROR: OpenCode auth file not found at $OPENCODE_AUTH"
-  echo "Run 'opencode' at least once first."
+  echo "Run OpenCode CLI or OpenCode Desktop at least once first."
   exit 1
 fi
 

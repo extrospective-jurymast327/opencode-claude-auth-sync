@@ -15,15 +15,12 @@ Write-Output "==> Checking prerequisites..."
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Error "ERROR: node is required but not found"; exit 1
 }
-if (-not (Get-Command opencode -ErrorAction SilentlyContinue)) {
-    Write-Error "ERROR: opencode is required but not found"; exit 1
-}
 if (-not (Test-Path $claudeCreds)) {
     Write-Error "ERROR: Claude credentials not found at $claudeCreds`nRun 'claude' first to authenticate."
     exit 1
 }
 if (-not (Test-Path $opencodeAuth)) {
-    Write-Error "ERROR: OpenCode auth file not found at $opencodeAuth`nRun 'opencode' at least once first."
+    Write-Error "ERROR: OpenCode auth file not found at $opencodeAuth`nRun OpenCode CLI or OpenCode Desktop at least once first."
     exit 1
 }
 
