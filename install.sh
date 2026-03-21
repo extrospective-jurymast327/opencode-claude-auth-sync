@@ -76,6 +76,23 @@ if [[ "${1:-}" == "--no-scheduler" ]]; then
   NO_SCHEDULER=true
 fi
 
+# Resolve minimal PATH from required binaries instead of injecting full PATH
+SYNC_PATH="/usr/local/bin:/usr/bin:/bin"
+for bin in node claude; do
+  bin_path=$(type -P "$bin" 2>/dev/null || true)
+  if [[ -n "$bin_path" && "$bin_path" == /* ]]; then
+    bin_dir=$(dirname "$bin_path")
+    case ":${SYNC_PATH}:" in
+      *":${bin_dir}:"*) ;;
+      *) SYNC_PATH="${bin_dir}:${SYNC_PATH}" ;;
+    esac
+  fi
+done
+
+if ! PATH="$SYNC_PATH" type -P node >/dev/null 2>&1; then
+  echo "    WARNING: node may not be found by the scheduled job. Re-run installer after fixing your node setup." >&2
+fi
+
 if [[ "$NO_SCHEDULER" == "true" ]]; then
   echo "==> Skipping scheduler setup (--no-scheduler)."
   echo "    Run manually when needed: ${INSTALL_DIR}/${ALIAS_NAME}"
@@ -103,7 +120,7 @@ elif [[ "$(uname)" == "Darwin" ]]; then
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>${PATH}</string>
+    <string>${SYNC_PATH}</string>
   </dict>
   <key>StartInterval</key>
   <integer>900</integer>
@@ -124,7 +141,7 @@ PLIST
 
 else
   echo "==> Setting up cron (every 15 minutes)..."
-  CRON_CMD="*/15 * * * * PATH=\"${PATH}\" ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
+  CRON_CMD="*/15 * * * * PATH=\"${SYNC_PATH}\" ${INSTALL_DIR}/${SCRIPT_NAME} >> ${HOME}/.local/share/opencode/sync-claude.log 2>&1 ${CRON_MARKER}"
 
   if command -v crontab >/dev/null 2>&1; then
     EXISTING=$(crontab -l 2>/dev/null || true)
