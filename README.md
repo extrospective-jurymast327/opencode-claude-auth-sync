@@ -1,6 +1,16 @@
 # opencode-claude-auth-sync
 
-Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) credentials to [OpenCode](https://opencode.ai) — no separate Anthropic login needed.
+Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) credentials to [OpenCode](https://opencode.ai) — with **cross-platform multi-account support**.
+
+**The only tool that supports multi-account on Linux, macOS, and Windows.** Manage multiple Claude accounts with quota tracking, automatic rotation, and one-command switching — on any platform.
+
+### Key Features
+
+- **Cross-platform multi-account** — Store and switch between multiple Claude accounts on Linux, macOS, and Windows. Not limited to macOS Keychain.
+- **Quota visibility** — See your 5h / 7d usage at a glance with `claude-sync --status`
+- **Account rotation** — Round-robin switching when one account hits rate limits
+- **Zero dependencies** — Plain shell scripts. No npm, no node_modules, no supply chain risk. Read the source before you run it.
+- **Auto-refresh** — Expired tokens are refreshed via Claude CLI automatically
 
 ---
 
@@ -25,6 +35,8 @@ If it keeps coming back, also remove `opencode-anthropic-auth` from `~/.cache/op
 <summary>🤔 <strong>Why not an npm plugin?</strong></summary>
 
 When auth breaks, npm packages pop up fast — but installing unknown packages that handle your OAuth tokens is a risk. This tool is a plain shell script you can read in full before running. No `node_modules`, no dependency tree, no trust required.
+
+npm-based alternatives like [`opencode-claude-auth`](https://github.com/griffinmartin/opencode-claude-auth) work well for single-account setups on macOS. If you need multi-account on Linux or Windows, this is the tool.
 
 </details>
 
@@ -219,7 +231,7 @@ This tool is **not an npm package** — it's a plain shell script you can read b
 - Single-file scripts: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (bash) / [`.ps1`](sync-claude-to-opencode.ps1) (PowerShell)
 - Credentials are passed via stdin, never exposed in process arguments
 - All JSON writes are atomic (temp file + rename) to prevent corruption
-- Review the source before installing: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (~850 lines) / [`.ps1`](sync-claude-to-opencode.ps1) (~620 lines)
+- Review the source before installing: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (~846 lines) / [`.ps1`](sync-claude-to-opencode.ps1) (~619 lines)
 
 ```bash
 # Inspect before running
