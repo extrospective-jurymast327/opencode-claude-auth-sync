@@ -92,11 +92,13 @@ claude-sync --status
 claude-sync --force
 ```
 
-## Multi-Account
+## Multi-Account (Experimental)
 
-Manage multiple Claude accounts with quota visibility, automatic rotation, and the shorter `claude-sync` command.
+Experimental snapshot-based multi-account support for OpenCode.
 
-Important: Claude CLI itself only supports one logged-in account at a time. Multi-account here means this tool stores multiple credential sets in its own account store, then switches which one is written into OpenCode's `auth.json`.
+Important: Claude CLI itself only supports one logged-in account at a time. Multi-account here means this tool stores multiple credential snapshots in its own account store, then switches which one is written into OpenCode's `auth.json`.
+
+This is **not** full independent multi-account refresh. Stored accounts switch cleanly while still valid, but once an account expires you must log into that account again with `claude` and re-save it with `claude-sync --add <label>`.
 
 Account store:
 
@@ -203,10 +205,12 @@ Usage:   5h 2% (reset: 2026-03-21T07:00:00.152Z)
          sonnet 3%
 ```
 
-### Rotation behavior
+### Rotation behavior and limitations
 
 - OpenCode still uses a single Anthropic entry in `auth.json`
-- This tool switches which stored account is written into that slot
+- This tool switches which stored account snapshot is written into that slot
+- `--switch <label>` only works for still-valid stored accounts
+- If a stored account is expired, re-login with `claude` and save it again with `claude-sync --add <label>`
 - If the active account is expired, the script first tries another non-expired stored account
 - If all stored accounts are expired, it falls back to Claude CLI refresh for the currently logged-in Claude account
 - 429 rate limits are not auto-detected yet; if one account is rate-limited, run `claude-sync --rotate` manually

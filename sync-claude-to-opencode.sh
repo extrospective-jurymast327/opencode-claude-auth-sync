@@ -47,7 +47,7 @@ Multi-account:
   --login <label>     Convenience wrapper: log into Claude CLI, then save
   --remove <label>    Remove a stored account
   --list              List all stored accounts with status
-  --switch <label>    Switch active account and sync
+  --switch <label>    Switch to a valid stored account and sync
   --rotate            Rotate to next account (round-robin) and sync
 
   --help              Show this help
@@ -418,6 +418,13 @@ if (!store.accounts[label]) {
 if (store.active === label) {
   console.error('Already active: ' + label);
   process.exit(0);
+}
+
+const acc = store.accounts[label];
+if ((acc.expiresAt || 0) <= Date.now()) {
+  console.error('Stored account is expired: ' + label);
+  console.error('Re-login with claude, then run: claude-sync --add ' + label);
+  process.exit(1);
 }
 
 store.active = label;

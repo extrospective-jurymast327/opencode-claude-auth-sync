@@ -46,7 +46,7 @@ Multi-account:
   --login <label>     Convenience wrapper: log into Claude CLI, then save
   --remove <label>    Remove a stored account
   --list              List all stored accounts with status
-  --switch <label>    Switch active account and sync
+  --switch <label>    Switch to a valid stored account and sync
   --rotate            Rotate to next account (round-robin) and sync
 
   --help              Show this help
@@ -557,6 +557,13 @@ function Switch-Account {
         if ($store.active -eq $Label) {
             Write-Output "Already active: $Label"
         } else {
+            $target = $store.accounts[$Label]
+            $targetStatus = Get-TokenStatus $target
+            if ($targetStatus.Remaining -le 0) {
+                Write-Error "Stored account is expired: $Label"
+                Write-Error "Re-login with 'claude', then run: claude-sync --add $Label"
+                exit 1
+            }
             $labels = @($store.accounts.Keys)
             $store.active = $Label
             $store.rotationIndex = [array]::IndexOf($labels, $Label)
